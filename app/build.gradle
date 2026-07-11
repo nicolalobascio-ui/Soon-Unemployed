@@ -34,7 +34,11 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'it.unicam.cs.mpgc.rpg.App'
+    mainClass = 'it.unicam.cs.mpgc.rpg125656.App'
+}
+
+tasks.named('run') {
+    standardInput = System.in
 }
 
 tasks.named('test') {
