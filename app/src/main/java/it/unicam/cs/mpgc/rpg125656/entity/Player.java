@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg.entity;
+package it.unicam.cs.mpgc.rpg125656.entity;
 
 public class Player {
     private final String name;

@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg.entity;
+package it.unicam.cs.mpgc.rpg125656.entity;
 
 public enum BattleAction {
     BE_KIND("Certamente, me ne occupo subito", 15, -20, -5, -15),

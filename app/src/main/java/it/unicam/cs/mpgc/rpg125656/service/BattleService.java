@@ -1,13 +1,17 @@
-package it.unicam.cs.mpgc.rpg.service;
+package it.unicam.cs.mpgc.rpg125656.service;
 
-import it.unicam.cs.mpgc.rpg.entity.BattleAction;
-import it.unicam.cs.mpgc.rpg.entity.Enemy;
-import it.unicam.cs.mpgc.rpg.entity.GameState;
-import it.unicam.cs.mpgc.rpg.entity.Player;
+import it.unicam.cs.mpgc.rpg125656.entity.BattleAction;
+import it.unicam.cs.mpgc.rpg125656.entity.Enemy;
+import it.unicam.cs.mpgc.rpg125656.entity.GameState;
+import it.unicam.cs.mpgc.rpg125656.entity.Player;
 
 public class BattleService {
 
     public void applyPlayerAction(GameState state, BattleAction action) {
+        if (state == null || action == null || state.isFinished() || state.getCurrentEnemy() == null) {
+            return;
+        }
+
         Player player = state.getPlayer();
         Enemy enemy = state.getCurrentEnemy();
 
@@ -18,6 +22,10 @@ public class BattleService {
     }
 
     public void updateOutcome(GameState state) {
+        if (state == null || state.getCurrentEnemy() == null || state.isFinished()) {
+            return;
+        }
+
         Player player = state.getPlayer();
         Enemy enemy = state.getCurrentEnemy();
 
@@ -28,21 +36,16 @@ public class BattleService {
 
         if (enemy.hasFiredPlayer()) {
             state.setOutcome(GameState.Outcome.FIRED);
-            return;
-        }
-
-        if (enemy.isDefeated()) {
-            if (state.getLevel() >= 3) {
-                state.setOutcome(GameState.Outcome.VICTORY);
-            }
         }
     }
 
     public boolean isBattleWon(GameState state) {
-        return state.getCurrentEnemy() != null && state.getCurrentEnemy().isDefeated();
+        return state != null
+                && state.getCurrentEnemy() != null
+                && state.getCurrentEnemy().isDefeated();
     }
 
     public boolean isGameOver(GameState state) {
-        return state.isFinished();
+        return state != null && state.isFinished();
     }
 }
