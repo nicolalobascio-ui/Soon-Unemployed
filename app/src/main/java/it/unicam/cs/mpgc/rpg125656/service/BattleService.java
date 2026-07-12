@@ -5,8 +5,9 @@ import it.unicam.cs.mpgc.rpg125656.entity.Enemy;
 import it.unicam.cs.mpgc.rpg125656.entity.GameState;
 import it.unicam.cs.mpgc.rpg125656.entity.Player;
 
-public class BattleService {
+public class BattleService implements BattleServicePort {
 
+    @Override
     public void applyPlayerAction(GameState state, BattleAction action) {
         if (state == null || action == null || state.isFinished() || state.getCurrentEnemy() == null) {
             return;
@@ -21,6 +22,7 @@ public class BattleService {
         updateOutcome(state);
     }
 
+    @Override
     public void updateOutcome(GameState state) {
         if (state == null || state.getCurrentEnemy() == null || state.isFinished()) {
             return;
@@ -39,12 +41,14 @@ public class BattleService {
         }
     }
 
+    @Override
     public boolean isBattleWon(GameState state) {
         return state != null
                 && state.getCurrentEnemy() != null
                 && state.getCurrentEnemy().isDefeated();
     }
 
+    @Override
     public boolean isGameOver(GameState state) {
         return state != null && state.isFinished();
     }

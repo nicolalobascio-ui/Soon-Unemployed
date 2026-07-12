@@ -2,19 +2,23 @@ package it.unicam.cs.mpgc.rpg125656;
 
 import it.unicam.cs.mpgc.rpg125656.entity.BattleAction;
 import it.unicam.cs.mpgc.rpg125656.entity.GameState;
-import it.unicam.cs.mpgc.rpg125656.service.GamePersistenceService;
-import it.unicam.cs.mpgc.rpg125656.service.BattleService;
-import it.unicam.cs.mpgc.rpg125656.service.GameService;
+import it.unicam.cs.mpgc.rpg125656.service.BattleServicePort;
+import it.unicam.cs.mpgc.rpg125656.service.GamePersistencePort;
+import it.unicam.cs.mpgc.rpg125656.service.GameServicePort;
 
 public class GameSession {
 
-    private final GameService gameService;
-    private final BattleService battleService;
-    private final GamePersistenceService persistenceService;
+    private final GameServicePort gameService;
+    private final BattleServicePort battleService;
+    private final GamePersistencePort persistenceService;
 
     private GameState state;
 
-    public GameSession(GameService gameService, BattleService battleService, GamePersistenceService persistenceService) {
+    public GameSession(
+            GameServicePort gameService,
+            BattleServicePort battleService,
+            GamePersistencePort persistenceService
+    ) {
         this.gameService = gameService;
         this.battleService = battleService;
         this.persistenceService = persistenceService;

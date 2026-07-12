@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class GamePersistenceService {
+public class GamePersistenceService implements GamePersistencePort {
 
     private final Path saveFile;
 
@@ -20,6 +20,7 @@ public class GamePersistenceService {
         this.saveFile = saveFile;
     }
 
+    @Override
     public void save(GameState state) {
         GameStateSnapshot snapshot = GameStateSnapshot.from(state);
         try {
@@ -29,6 +30,7 @@ public class GamePersistenceService {
         }
     }
 
+    @Override
     public GameState load() {
         if (!Files.exists(saveFile)) {
             return null;
@@ -47,6 +49,7 @@ public class GamePersistenceService {
         }
     }
 
+    @Override
     public void deleteSave() {
         try {
             Files.deleteIfExists(saveFile);
@@ -55,6 +58,7 @@ public class GamePersistenceService {
         }
     }
 
+    @Override
     public boolean hasSave() {
         return Files.exists(saveFile);
     }

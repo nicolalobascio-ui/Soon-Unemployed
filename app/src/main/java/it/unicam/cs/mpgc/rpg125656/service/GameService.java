@@ -5,18 +5,19 @@ import it.unicam.cs.mpgc.rpg125656.entity.Enemy;
 import it.unicam.cs.mpgc.rpg125656.entity.GameState;
 import it.unicam.cs.mpgc.rpg125656.entity.Player;
 
-public class GameService {
+public class GameService implements GameServicePort {
 
-    private final BattleService battleService;
+    private final BattleServicePort battleService;
 
     public GameService() {
         this(new BattleService());
     }
 
-    public GameService(BattleService battleService) {
+    public GameService(BattleServicePort battleService) {
         this.battleService = battleService;
     }
 
+    @Override
     public GameState startNewGame(String playerName) {
         Player player = new Player(playerName);
         GameState state = new GameState(player);
@@ -36,6 +37,7 @@ public class GameService {
         };
     }
 
+    @Override
     public void resolveCurrentBattle(GameState state) {
         if (state == null || state.isFinished()) {
             return;
@@ -52,6 +54,7 @@ public class GameService {
         }
     }
 
+    @Override
     public void advanceLevel(GameState state) {
         if (state == null || state.isFinished()) {
             return;
@@ -72,6 +75,7 @@ public class GameService {
         state.setTimeLabel(getTimeLabelForLevel(nextLevel));
     }
 
+    @Override
     public boolean isGameOver(GameState state) {
         return state != null && state.isFinished();
     }
