@@ -5,27 +5,37 @@ import it.unicam.cs.mpgc.rpg125656.entity.GameState;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public class MainWindowController {
 
-    private static final String ROOT_STYLE = "-fx-background-color: #F4F1EA;";
-    private static final String TITLE_STYLE = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #2B2B2B;";
-    private static final String TEXT_STYLE = "-fx-text-fill: #2B2B2B;";
-    private static final String PANEL_STYLE = "-fx-border-color: #D7CEC3; -fx-border-width: 1; -fx-background-color: #FFF9F0; -fx-padding: 12;";
-    private static final String MENU_TEXT_STYLE = "-fx-text-fill: #2B2B2B; -fx-font-size: 14px;";
-    private static final String TEXT_AREA_STYLE = "-fx-control-inner-background: #FFFDF8; -fx-background-color: #FFFDF8; -fx-text-fill: #2B2B2B;";
+    private static final String ROOT_STYLE = "-fx-background-color: #F7F8FA;";
+    private static final String TITLE_STYLE = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #263238;";
+    private static final String TEXT_STYLE = "-fx-text-fill: #263238;";
+    private static final String PANEL_STYLE = "-fx-border-color: #D7CEC3; -fx-border-width: 1; -fx-padding: 12;";
+    private static final String MENU_TEXT_STYLE = "-fx-text-fill: #263238; -fx-font-size: 14px;";
+    private static final String TEXT_AREA_STYLE = "-fx-control-inner-background: #FFFFFF; -fx-background-color: #FFFFFF; -fx-text-fill: #263238;";
     private static final String PRIMARY_BUTTON_STYLE = "-fx-background-color: #B5524B; -fx-text-fill: white;";
     private static final String SECONDARY_BUTTON_STYLE = "-fx-background-color: #5F7A8A; -fx-text-fill: white;";
-    private static final String NEUTRAL_BUTTON_STYLE = "-fx-background-color: #D7CEC3; -fx-text-fill: #2B2B2B;";
+    private static final String NEUTRAL_BUTTON_STYLE = "-fx-background-color: #D7CEC3; -fx-text-fill: #263238;";
+    private static final Path SAVE_FILE = Path.of("savegame.txt");
 
     private final GameSession session;
 
@@ -34,13 +44,24 @@ public class MainWindowController {
     private final Label levelLabel = new Label();
     private final Label timeLabel = new Label();
 
-    private final Label playerNameLabel = new Label();
-    private final Label hpLabel = new Label();
-    private final Label patienceLabel = new Label();
+    // Player stat bars + labels inside stacks
+    private final ProgressBar hpBar = new ProgressBar(0);
+    private final Label hpBarLabel = new Label();
+    private final StackPane hpStack = new StackPane();
 
+    private final ProgressBar patienceBar = new ProgressBar(0);
+    private final Label patienceBarLabel = new Label();
+    private final StackPane patienceStack = new StackPane();
+
+    // Enemy stat bars + labels inside stacks
     private final Label enemyNameLabel = new Label();
-    private final Label authorityLabel = new Label();
-    private final Label irritationLabel = new Label();
+    private final ProgressBar enemyAuthorityBar = new ProgressBar(0);
+    private final Label enemyAuthorityLabel = new Label();
+    private final StackPane enemyAuthorityStack = new StackPane();
+
+    private final ProgressBar enemyIrritationBar = new ProgressBar(0);
+    private final Label enemyIrritationLabel = new Label();
+    private final StackPane enemyIrritationStack = new StackPane();
 
     private final TextArea dialogueArea = new TextArea();
     private final TextArea logArea = new TextArea();
@@ -51,6 +72,7 @@ public class MainWindowController {
     private final Button newGameButton = new Button("Nuova partita");
     private final Button resumeButton = new Button("Torna al menù");
     private final Button restartButton = new Button("Riavvia partita");
+    private final Button nextLevelButton = new Button("Prossimo livello");
 
     private final VBox menuPane = new VBox(16);
     private final VBox gamePane = new VBox(12);
@@ -84,25 +106,97 @@ public class MainWindowController {
         logArea.setWrapText(true);
         logArea.setStyle(TEXT_AREA_STYLE);
 
-        VBox playerBox = new VBox(8,
-                new Label("Statistiche giocatore"),
-                playerNameLabel,
-                hpLabel,
-                patienceLabel
-        );
-        playerBox.setStyle(PANEL_STYLE);
+        // --- Stats grid: aligned columns (player left, enemy right, small spacer) ---
+        GridPane statsGrid = new GridPane();
+        statsGrid.setHgap(12);
+        statsGrid.setVgap(8);
+        statsGrid.setPadding(new Insets(12));
+        statsGrid.setStyle(PANEL_STYLE + " -fx-background-color: #F0FFF4;");
 
-        VBox enemyBox = new VBox(8,
-                new Label("Statistiche nemico"),
-                enemyNameLabel,
-                authorityLabel,
-                irritationLabel
-        );
-        enemyBox.setStyle(PANEL_STYLE);
+        ColumnConstraints labelCol = new ColumnConstraints();
+        labelCol.setMinWidth(100);
+        labelCol.setMaxWidth(140);
+        labelCol.setHgrow(Priority.NEVER);
 
-        HBox statsBox = new HBox(24, playerBox, enemyBox);
-        statsBox.setPadding(new Insets(16));
+        ColumnConstraints barCol = new ColumnConstraints();
+        barCol.setHgrow(Priority.ALWAYS);
+        barCol.setFillWidth(true);
+        barCol.setMinWidth(160);
 
+        ColumnConstraints valueCol = new ColumnConstraints();
+        valueCol.setMinWidth(60);
+        valueCol.setMaxWidth(80);
+        valueCol.setHgrow(Priority.NEVER);
+
+        ColumnConstraints spacerCol = new ColumnConstraints();
+        spacerCol.setMinWidth(20); // piccolo spacer per avvicinare il nemico
+        spacerCol.setHgrow(Priority.NEVER);
+
+        // Columns: 0-label,1-bar,2-value,3-spacer,4-label,5-bar,6-value
+        statsGrid.getColumnConstraints().addAll(labelCol, barCol, valueCol, spacerCol, labelCol, barCol, valueCol);
+
+        // Titles
+        Label playerTitle = new Label("Statistiche giocatore");
+        playerTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
+        statsGrid.add(playerTitle, 0, 0, 3, 1);
+
+        Label enemyTitle = new Label("Statistiche nemico");
+        enemyTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
+        statsGrid.add(enemyTitle, 4, 0, 3, 1);
+
+        // Player HP row
+        Label hpText = new Label("Salute mentale:");
+        hpText.setStyle(TEXT_STYLE);
+        hpBar.setProgress(0);
+        hpBar.setStyle("-fx-accent: #4CAF50;");
+        hpBarLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        hpStack.getChildren().addAll(hpBar, hpBarLabel);
+        StackPane.setAlignment(hpBarLabel, Pos.CENTER);
+        statsGrid.add(hpText, 0, 1);
+        statsGrid.add(hpStack, 1, 1);
+        statsGrid.add(new Label(""), 2, 1); // placeholder value column (we use label inside bar)
+
+        // Enemy Authority row (right)
+        Label authorityText = new Label("Autorità:");
+        authorityText.setStyle(TEXT_STYLE);
+        enemyAuthorityBar.setProgress(0);
+        enemyAuthorityBar.setStyle("-fx-accent: #FF9800;");
+        enemyAuthorityLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        enemyAuthorityStack.getChildren().addAll(enemyAuthorityBar, enemyAuthorityLabel);
+        StackPane.setAlignment(enemyAuthorityLabel, Pos.CENTER);
+        statsGrid.add(authorityText, 4, 1);
+        statsGrid.add(enemyAuthorityStack, 5, 1);
+        statsGrid.add(new Label(""), 6, 1);
+
+        // Player Patience row
+        Label patienceText = new Label("Pazienza:");
+        patienceText.setStyle(TEXT_STYLE);
+        patienceBar.setProgress(0);
+        patienceBar.setStyle("-fx-accent: #2196F3;");
+        patienceBarLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        patienceStack.getChildren().addAll(patienceBar, patienceBarLabel);
+        StackPane.setAlignment(patienceBarLabel, Pos.CENTER);
+        statsGrid.add(patienceText, 0, 2);
+        statsGrid.add(patienceStack, 1, 2);
+        statsGrid.add(new Label(""), 2, 2);
+
+        // Enemy Irritation row (right)
+        Label irritationText = new Label("Irritazione:");
+        irritationText.setStyle(TEXT_STYLE);
+        enemyIrritationBar.setProgress(0);
+        enemyIrritationBar.setStyle("-fx-accent: #9C27B0;");
+        enemyIrritationLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        enemyIrritationStack.getChildren().addAll(enemyIrritationBar, enemyIrritationLabel);
+        StackPane.setAlignment(enemyIrritationLabel, Pos.CENTER);
+        statsGrid.add(irritationText, 4, 2);
+        statsGrid.add(enemyIrritationStack, 5, 2);
+        statsGrid.add(new Label(""), 6, 2);
+
+        // Enemy name under right column
+        enemyNameLabel.setStyle(TEXT_STYLE);
+        statsGrid.add(enemyNameLabel, 4, 3, 3, 1);
+
+        // --- Top / center layout ---
         VBox topBox = new VBox(8, titleLabel, levelLabel, timeLabel);
         topBox.setPadding(new Insets(16));
 
@@ -118,11 +212,15 @@ public class MainWindowController {
         actionButtons.setAlignment(Pos.CENTER);
         actionButtons.setPadding(new Insets(16));
 
-        HBox controlButtons = new HBox(10, newGameButton, resumeButton, restartButton);
+        nextLevelButton.setStyle(PRIMARY_BUTTON_STYLE);
+        nextLevelButton.setVisible(false);
+        nextLevelButton.setManaged(false);
+
+        HBox controlButtons = new HBox(10, newGameButton, resumeButton, restartButton, nextLevelButton);
         controlButtons.setAlignment(Pos.CENTER_LEFT);
         controlButtons.setPadding(new Insets(16, 16, 0, 16));
 
-        gamePane.getChildren().addAll(controlButtons, topBox, statsBox, centerBox, actionButtons);
+        gamePane.getChildren().addAll(controlButtons, topBox, statsGrid, centerBox, actionButtons);
 
         menuPane.setAlignment(Pos.CENTER);
         menuPane.setPadding(new Insets(24));
@@ -132,8 +230,8 @@ public class MainWindowController {
 
         Label menuText = new Label(
                 "Soon Unemployed è un gioco di ruolo a turni ambientato nel contesto lavorativo contemporaneo.\n\n" +
-                "Devi superare tre incontri consecutivi nell'arco della giornata di venerdì, gestendo salute mentale, pazienza e rischio di licenziamento.\n\n" +
-                "Scegli Nuova partita per iniziare oppure Carica partita se hai già un salvataggio."
+                        "Devi superare tre incontri consecutivi nell'arco della giornata di venerdì, gestendo salute mentale, pazienza e rischio di licenziamento.\n\n" +
+                        "Scegli Nuova partita per iniziare oppure Carica partita se hai già un salvataggio."
         );
         menuText.setStyle(MENU_TEXT_STYLE);
         menuText.setWrapText(true);
@@ -149,15 +247,31 @@ public class MainWindowController {
         rudeButton.setStyle(PRIMARY_BUTTON_STYLE);
 
         loadButton.setOnAction(event -> {
-            String playerName = askPlayerName();
-            if (playerName == null) {
+            if (!Files.exists(SAVE_FILE)) {
+                showNoSaveDialog();
                 return;
             }
-            session.loadOrStartNew(playerName);
+
+            session.loadOrStartNew("John");
             showGame();
             refresh();
             showLevelIntro();
             appendLog("Partita caricata.");
+        });
+
+        nextLevelButton.setOnAction(event -> {
+            nextLevelButton.setVisible(false);
+            nextLevelButton.setManaged(false);
+            kindButton.setDisable(false);
+            passiveButton.setDisable(false);
+            rudeButton.setDisable(false);
+
+            showLevelIntro();
+            refresh();
+            GameState state = session.getState();
+            if (state != null) {
+                appendLog("Passato al livello " + state.getLevel() + ".");
+            }
         });
 
         menuPane.getChildren().addAll(menuTitle, menuText, newGameButton, loadButton);
@@ -210,7 +324,6 @@ public class MainWindowController {
             return;
         }
 
-        dialogueArea.clear();
         appendDialogue(action);
 
         int previousLevel = state.getLevel();
@@ -221,12 +334,20 @@ public class MainWindowController {
         appendTurnResult(state, previousLevel, previousEnemyName);
 
         if (!session.isGameOver() && state.getLevel() > previousLevel) {
-            showLevelIntro();
+            kindButton.setDisable(true);
+            passiveButton.setDisable(true);
+            rudeButton.setDisable(true);
+            nextLevelButton.setVisible(true);
+            nextLevelButton.setManaged(true);
         }
 
         if (session.isGameOver()) {
             appendLog("Partita terminata.");
-            disableButtons();
+            disableActionButtons();
+            nextLevelButton.setVisible(false);
+            nextLevelButton.setManaged(false);
+            resumeButton.setDisable(false);
+            restartButton.setDisable(false);
             session.deleteSave();
         }
     }
@@ -242,13 +363,26 @@ public class MainWindowController {
         levelLabel.setText("Livello: " + state.getLevel());
         timeLabel.setText("Orario: " + state.getTimeLabel());
 
-        playerNameLabel.setText("Giocatore: " + state.getPlayer().getName());
-        hpLabel.setText("Salute mentale: " + state.getPlayer().getStats().getMentalHealth());
-        patienceLabel.setText("Pazienza: " + state.getPlayer().getStats().getPatience());
+        int hp = state.getPlayer().getStats().getMentalHealth();
+        int patience = state.getPlayer().getStats().getPatience();
 
-        enemyNameLabel.setText("Nemico: " + state.getCurrentEnemy().getName());
-        authorityLabel.setText("Autorita nemico: " + state.getCurrentEnemy().getAuthority());
-        irritationLabel.setText("Irritazione: " + state.getCurrentEnemy().getIrritation());
+        hpBar.setProgress(Math.max(0.0, Math.min(1.0, hp / 100.0)));
+        hpBarLabel.setText(hp + "/100");
+
+        patienceBar.setProgress(Math.max(0.0, Math.min(1.0, patience / 50.0)));
+        patienceBarLabel.setText(patience + "/50");
+
+        var enemy = state.getCurrentEnemy();
+        enemyNameLabel.setText("Nome: " + enemy.getName());
+
+        int authority = enemy.getAuthority();
+        int maxAuthority = Math.max(1, enemy.getMaxAuthority());
+        enemyAuthorityBar.setProgress(Math.max(0.0, Math.min(1.0, ((double) authority) / maxAuthority)));
+        enemyAuthorityLabel.setText(authority + "/" + maxAuthority);
+
+        int irritation = enemy.getIrritation();
+        enemyIrritationBar.setProgress(Math.max(0.0, Math.min(1.0, ((double) irritation) / maxAuthority)));
+        enemyIrritationLabel.setText(irritation + "/" + maxAuthority);
 
         updateActionButtonsState(state);
     }
@@ -266,6 +400,8 @@ public class MainWindowController {
         rudeButton.setDisable(false);
         resumeButton.setDisable(false);
         restartButton.setDisable(false);
+        nextLevelButton.setVisible(false);
+        nextLevelButton.setManaged(false);
     }
 
     private String askPlayerName() {
@@ -286,12 +422,15 @@ public class MainWindowController {
     private void clearGameFields() {
         levelLabel.setText("");
         timeLabel.setText("");
-        playerNameLabel.setText("");
-        hpLabel.setText("");
-        patienceLabel.setText("");
+        hpBar.setProgress(0);
+        hpBarLabel.setText("");
+        patienceBar.setProgress(0);
+        patienceBarLabel.setText("");
         enemyNameLabel.setText("");
-        authorityLabel.setText("");
-        irritationLabel.setText("");
+        enemyAuthorityBar.setProgress(0);
+        enemyAuthorityLabel.setText("");
+        enemyIrritationBar.setProgress(0);
+        enemyIrritationLabel.setText("");
         dialogueArea.clear();
         logArea.clear();
     }
@@ -306,19 +445,16 @@ public class MainWindowController {
 
         switch (state.getLevel()) {
             case 1:
-                appendDialogueLine("Collega: Cercavo proprio te, ho una consegna urgente da fare. Potresti farla tu? Io proprio non riesco.");
-                appendDialogueLine("Collega: Mi servirebbe subito, è una cosa piccolissima.");
+                appendDialogueLine("Collega: Ho una consegna urgente da fare. La prendi in carico tu o devo cercare un altro modo?");
                 break;
             case 2:
-                appendDialogueLine("Project manager: Servono risultati immediati. Ho bisogno che tu ti occupi di questo report senza perdere tempo.");
-                appendDialogueLine("Project manager: Se tutto va bene, forse eviteremo altri problemi.");
+                appendDialogueLine("Project manager: Mi serve il report subito. Lo gestisci tu o devo spostarlo ancora una volta?");
                 break;
             case 3:
-                appendDialogueLine("Grande capo: Adesso basta rimandare. Voglio una soluzione subito, senza scuse.");
-                appendDialogueLine("Grande capo: Questa è l'ultima prova, dimmi se sei all'altezza.");
+                appendDialogueLine("Grande capo: Voglio una soluzione immediata. Sei tu quello che me la porta, oppure no?");
                 break;
             default:
-                appendDialogueLine("Collega: Anche stavolta tocca a te sistemare tutto.");
+                appendDialogueLine("Collega: Anche stavolta tocca a te sistemare tutto. Ti va di occupartene?");
                 break;
         }
     }
@@ -329,84 +465,67 @@ public class MainWindowController {
             return;
         }
 
-        switch (state.getLevel()) {
-            case 1:
-                appendDialogueLine("Collega: Cercavo proprio te, ho una consegna urgente da fare. Potresti farla tu? Io proprio non riesco.");
-                switch (action) {
-                    case BE_KIND:
-                        appendDialogueLine("Tu: Va bene, ma mandami tutto chiaro così la gestisco subito.");
-                        appendDialogueLine("Collega: Certo, ti invio tutto adesso.");
-                        appendDialogueLine("Tu: Perfetto, così evitiamo altri intoppi.");
-                        appendDialogueLine("Collega: Grazie, mi togli un peso.");
-                        break;
-                    case PASSIVE_AGGRESSIVE:
-                        appendDialogueLine("Tu: Strano, le urgenze arrivano sempre quando passi da me.");
-                        appendDialogueLine("Collega: Dai, questa volta è davvero importante.");
-                        appendDialogueLine("Tu: Allora mandami tutto ordinato e vediamo se si può fare.");
-                        appendDialogueLine("Collega: Va bene, te lo preparo subito.");
-                        break;
-                    case RUDE:
-                        appendDialogueLine("Tu: No, occupatene da solo.");
-                        appendDialogueLine("Collega: Così mi lasci nei guai.");
-                        appendDialogueLine("Tu: La prossima volta organizzati meglio.");
-                        appendDialogueLine("Collega: Questa me la segno.");
-                        break;
-                }
-                break;
+        appendDialogueLine(getPlayerResponse(action));
+        appendDialogueLine(getEnemyReaction(state, action));
+        appendDialogueLine(getEnemyFollowUp(state, action));
+    }
 
-            case 2:
-                appendDialogueLine("Project manager: Mi serve un aggiornamento immediato sul report. La riunione è tra poco.");
-                switch (action) {
-                    case BE_KIND:
-                        appendDialogueLine("Tu: Ti passo un riepilogo subito, così sei allineato.");
-                        appendDialogueLine("Project manager: Perfetto, questo mi aiuta molto.");
-                        appendDialogueLine("Tu: Se serve, ti evidenzio anche i punti critici.");
-                        appendDialogueLine("Project manager: Ottimo, grazie per la collaborazione.");
-                        break;
-                    case PASSIVE_AGGRESSIVE:
-                        appendDialogueLine("Tu: Curioso che serva tutto all'ultimo minuto, come sempre.");
-                        appendDialogueLine("Project manager: Non abbiamo tempo per le polemiche.");
-                        appendDialogueLine("Tu: Allora dimmi esattamente cosa manca, così chiudiamo la questione.");
-                        appendDialogueLine("Project manager: Te lo scrivo subito.");
-                        break;
-                    case RUDE:
-                        appendDialogueLine("Tu: Non posso rifare tutto all'ultimo minuto.");
-                        appendDialogueLine("Project manager: Mi servono risultati, non scuse.");
-                        appendDialogueLine("Tu: Allora gestisci meglio le priorità la prossima volta.");
-                        appendDialogueLine("Project manager: Questo tono non aiuta.");
-                        break;
-                }
-                break;
+    private String getPlayerResponse(BattleAction action) {
+        return switch (action) {
+            case BE_KIND -> "Tu: Va bene, mandami tutto e mi occupo io della parte urgente.";
+            case PASSIVE_AGGRESSIVE -> "Tu: Strano che l'urgenza arrivi sempre quando serve a me.";
+            case RUDE -> "Tu: No, occupatene da solo.";
+        };
+    }
 
-            case 3:
-                appendDialogueLine("Grande capo: Voglio una soluzione adesso. Niente scuse.");
-                switch (action) {
-                    case BE_KIND:
-                        appendDialogueLine("Tu: Va bene, ti do subito un piano concreto.");
-                        appendDialogueLine("Grande capo: Parla, ti ascolto.");
-                        appendDialogueLine("Tu: Divido il problema in due fasi e ti aggiorno appena ho un risultato.");
-                        appendDialogueLine("Grande capo: Bene, voglio vedere se reggi la pressione.");
-                        break;
-                    case PASSIVE_AGGRESSIVE:
-                        appendDialogueLine("Tu: Certo, dopo tutto il tempo che avevo chiesto.");
-                        appendDialogueLine("Grande capo: Non è il momento per queste osservazioni.");
-                        appendDialogueLine("Tu: Perfetto, allora concentriamoci sulla soluzione e non sul ritardo.");
-                        appendDialogueLine("Grande capo: Fai in fretta.");
-                        break;
-                    case RUDE:
-                        appendDialogueLine("Tu: Se vuoi risultati, smetti di ordinare e inizia a spiegare.");
-                        appendDialogueLine("Grande capo: Stai superando il limite.");
-                        appendDialogueLine("Tu: Il limite lo supera chi pretende tutto senza spiegare nulla.");
-                        appendDialogueLine("Grande capo: Vedremo quanto ti conviene.");
-                        break;
-                }
-                break;
+    private String getEnemyReaction(GameState state, BattleAction action) {
+        return switch (state.getLevel()) {
+            case 1 -> switch (action) {
+                case BE_KIND -> "Collega: Grazie, sapevo che potevo contare su di te.";
+                case PASSIVE_AGGRESSIVE -> "Collega: Capisco il punto, ma adesso ho davvero bisogno di una mano.";
+                case RUDE -> "Collega: Così mi lasci nei guai.";
+            };
+            case 2 -> switch (action) {
+                case BE_KIND -> "Project manager: Bene, allora manteniamo il focus e chiudiamo in fretta.";
+                case PASSIVE_AGGRESSIVE -> "Project manager: Non è il momento per le polemiche.";
+                case RUDE -> "Project manager: Questo tono non aiuta il lavoro.";
+            };
+            case 3 -> switch (action) {
+                case BE_KIND -> "Grande capo: Bene, vediamo se il tuo piano regge la pressione.";
+                case PASSIVE_AGGRESSIVE -> "Grande capo: Non ho tempo per recriminazioni.";
+                case RUDE -> "Grande capo: Stai superando il limite.";
+            };
+            default -> switch (action) {
+                case BE_KIND -> "Collega: Bene, allora passami i dettagli e procediamo.";
+                case PASSIVE_AGGRESSIVE -> "Collega: Va bene, dimmi almeno cosa hai bisogno di sapere.";
+                case RUDE -> "Collega: Questa risposta non chiude la questione.";
+            };
+        };
+    }
 
-            default:
-                appendDialogueLine("Collega: Serve una mano, come al solito.");
-                appendDialogueLine("Tu: Dimmi cosa ti serve e vediamo.");
-                break;
-        }
+    private String getEnemyFollowUp(GameState state, BattleAction action) {
+        return switch (state.getLevel()) {
+            case 1 -> switch (action) {
+                case BE_KIND -> "Collega: Puoi anche prendere in carico l'altra parte, così ci togliamo il pensiero?";
+                case PASSIVE_AGGRESSIVE -> "Collega: Quindi, me la sistemi o devo chiedere a qualcun altro?";
+                case RUDE -> "Collega: Va bene, ma questa non finisce qui.";
+            };
+            case 2 -> switch (action) {
+                case BE_KIND -> "Project manager: Puoi mandarmi anche un aggiornamento tra poco, così resto allineato?";
+                case PASSIVE_AGGRESSIVE -> "Project manager: Allora dimmi cosa ti serve per chiudere, subito.";
+                case RUDE -> "Project manager: Riparliamone quando avrai un tono più professionale.";
+            };
+            case 3 -> switch (action) {
+                case BE_KIND -> "Grande capo: Allora dimostrami che puoi portarla a termine davvero.";
+                case PASSIVE_AGGRESSIVE -> "Grande capo: Bene, ma adesso voglio una risposta concreta.";
+                case RUDE -> "Grande capo: Ultima occasione: me la sistemi o no?";
+            };
+            default -> switch (action) {
+                case BE_KIND -> "Collega: Allora, posso contare su di te anche per il resto?";
+                case PASSIVE_AGGRESSIVE -> "Collega: D'accordo, ci mettiamo mano oppure no?";
+                case RUDE -> "Collega: Ti lascio ripensarci, ma serve una risposta.";
+            };
+        };
     }
 
     private void appendDialogueLine(String text) {
@@ -447,5 +566,15 @@ public class MainWindowController {
         disableActionButtons();
         resumeButton.setDisable(true);
         restartButton.setDisable(true);
+        nextLevelButton.setVisible(false);
+        nextLevelButton.setManaged(false);
+    }
+
+    private void showNoSaveDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Carica partita");
+        alert.setHeaderText("Nessun salvataggio disponibile");
+        alert.setContentText("Non è stato trovato alcun file di salvataggio. Avvia una nuova partita per iniziare.");
+        alert.showAndWait();
     }
 }

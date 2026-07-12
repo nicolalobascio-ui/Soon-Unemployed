@@ -74,25 +74,31 @@ public void showDialogue(BattleAction action) {
 
     switch (action) {
         case BE_KIND:
-            typeText("Tu: Certamente, me ne occupo subito.");
+            typeText("Nemico: Ho una richiesta urgente. La prendi in carico tu o devo cercare un altro modo?");
             pause(150);
-            typeText("Collega: Perfetto, grazie.");
+            typeText("Tu: Va bene, mandami tutto e mi occupo io della parte urgente.");
             pause(150);
-            typeText("Tu: Nessun problema.");
+            typeText("Nemico: Bene, vediamo se riesci a chiudere davvero questa cosa.");
+            pause(150);
+            typeText("Nemico: Puoi anche prendere in carico il resto, così ci togliamo il pensiero?");
             break;
         case PASSIVE_AGGRESSIVE:
-            typeText("Tu: Come da mia precedente mail...");
+            typeText("Nemico: Ho bisogno di una risposta adesso. La fai tu o la devo riassegnare?");
             pause(150);
-            typeText("Collega: ...");
+            typeText("Tu: Strano che l'urgenza arrivi sempre quando serve a me.");
             pause(150);
-            typeText("Tu: Esatto.");
+            typeText("Nemico: Non è il momento per le polemiche.");
+            pause(150);
+            typeText("Nemico: Quindi, me la sistemi o devo chiedere a qualcun altro?");
             break;
         case RUDE:
-            typeText("Tu: No, non lo faccio. Arrangiati.");
+            typeText("Nemico: Voglio una soluzione immediata. Sei tu quello che me la porta, oppure no?");
             pause(150);
-            typeText("Collega: Come ti permetti?");
+            typeText("Tu: No, occupatene da solo.");
             pause(150);
-            typeText("Tu: Ho altro da fare.");
+            typeText("Nemico: Questo tono non aiuta affatto.");
+            pause(150);
+            typeText("Nemico: Ultima occasione: me la sistemi o no?");
             break;
     }
 
@@ -171,3 +177,6 @@ private void pause(long milliseconds) {
     }
 }
 }
+
+
+
