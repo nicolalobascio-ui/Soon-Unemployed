@@ -156,6 +156,7 @@ public class MainWindowController {
             session.loadOrStartNew(playerName);
             showGame();
             refresh();
+            showLevelIntro();
             appendLog("Partita caricata.");
         });
 
@@ -175,6 +176,7 @@ public class MainWindowController {
             session.restartGame(playerName);
             showGame();
             refresh();
+            showLevelIntro();
             appendLog("Nuova partita avviata.");
         });
 
@@ -192,6 +194,7 @@ public class MainWindowController {
             session.restartGame(playerName);
             showGame();
             refresh();
+            showLevelIntro();
             appendLog("Partita riavviata.");
         });
     }
@@ -199,6 +202,11 @@ public class MainWindowController {
     private void handleAction(BattleAction action) {
         GameState state = session.getState();
         if (state == null || session.isGameOver()) {
+            return;
+        }
+
+        if (action == BattleAction.PASSIVE_AGGRESSIVE && state.getPlayer().getStats().getPatience() <= 0) {
+            appendLog("Non hai abbastanza pazienza per usare una risposta passivo-aggressiva.");
             return;
         }
 
@@ -212,6 +220,10 @@ public class MainWindowController {
         refresh();
         appendTurnResult(state, previousLevel, previousEnemyName);
 
+        if (!session.isGameOver() && state.getLevel() > previousLevel) {
+            showLevelIntro();
+        }
+
         if (session.isGameOver()) {
             appendLog("Partita terminata.");
             disableButtons();
@@ -223,6 +235,7 @@ public class MainWindowController {
         GameState state = session.getState();
         if (state == null) {
             clearGameFields();
+            disableActionButtons();
             return;
         }
 
@@ -230,12 +243,14 @@ public class MainWindowController {
         timeLabel.setText("Orario: " + state.getTimeLabel());
 
         playerNameLabel.setText("Giocatore: " + state.getPlayer().getName());
-        hpLabel.setText("HP mentale: " + state.getPlayer().getStats().getMentalHealth());
+        hpLabel.setText("Salute mentale: " + state.getPlayer().getStats().getMentalHealth());
         patienceLabel.setText("Pazienza: " + state.getPlayer().getStats().getPatience());
 
         enemyNameLabel.setText("Nemico: " + state.getCurrentEnemy().getName());
         authorityLabel.setText("Autorita nemico: " + state.getCurrentEnemy().getAuthority());
         irritationLabel.setText("Irritazione: " + state.getCurrentEnemy().getIrritation());
+
+        updateActionButtonsState(state);
     }
 
     private void showMenu() {
@@ -281,25 +296,115 @@ public class MainWindowController {
         logArea.clear();
     }
 
+    private void showLevelIntro() {
+        GameState state = session.getState();
+        if (state == null) {
+            return;
+        }
+
+        dialogueArea.clear();
+
+        switch (state.getLevel()) {
+            case 1:
+                appendDialogueLine("Collega: Cercavo proprio te, ho una consegna urgente da fare. Potresti farla tu? Io proprio non riesco.");
+                appendDialogueLine("Collega: Mi servirebbe subito, è una cosa piccolissima.");
+                break;
+            case 2:
+                appendDialogueLine("Project manager: Servono risultati immediati. Ho bisogno che tu ti occupi di questo report senza perdere tempo.");
+                appendDialogueLine("Project manager: Se tutto va bene, forse eviteremo altri problemi.");
+                break;
+            case 3:
+                appendDialogueLine("Grande capo: Adesso basta rimandare. Voglio una soluzione subito, senza scuse.");
+                appendDialogueLine("Grande capo: Questa è l'ultima prova, dimmi se sei all'altezza.");
+                break;
+            default:
+                appendDialogueLine("Collega: Anche stavolta tocca a te sistemare tutto.");
+                break;
+        }
+    }
+
     private void appendDialogue(BattleAction action) {
-        switch (action) {
-            case BE_KIND:
-                appendDialogueLine("Tu: Certamente, me ne occupo subito.");
-                appendDialogueLine("Collega: Bene, contavo proprio su di te.");
-                appendDialogueLine("Tu: Ti aggiorno appena ho finito.");
-                appendDialogueLine("Collega: Perfetto, grazie.");
+        GameState state = session.getState();
+        if (state == null) {
+            return;
+        }
+
+        switch (state.getLevel()) {
+            case 1:
+                appendDialogueLine("Collega: Cercavo proprio te, ho una consegna urgente da fare. Potresti farla tu? Io proprio non riesco.");
+                switch (action) {
+                    case BE_KIND:
+                        appendDialogueLine("Tu: Va bene, ma mandami tutto chiaro così la gestisco subito.");
+                        appendDialogueLine("Collega: Certo, ti invio tutto adesso.");
+                        appendDialogueLine("Tu: Perfetto, così evitiamo altri intoppi.");
+                        appendDialogueLine("Collega: Grazie, mi togli un peso.");
+                        break;
+                    case PASSIVE_AGGRESSIVE:
+                        appendDialogueLine("Tu: Strano, le urgenze arrivano sempre quando passi da me.");
+                        appendDialogueLine("Collega: Dai, questa volta è davvero importante.");
+                        appendDialogueLine("Tu: Allora mandami tutto ordinato e vediamo se si può fare.");
+                        appendDialogueLine("Collega: Va bene, te lo preparo subito.");
+                        break;
+                    case RUDE:
+                        appendDialogueLine("Tu: No, occupatene da solo.");
+                        appendDialogueLine("Collega: Così mi lasci nei guai.");
+                        appendDialogueLine("Tu: La prossima volta organizzati meglio.");
+                        appendDialogueLine("Collega: Questa me la segno.");
+                        break;
+                }
                 break;
-            case PASSIVE_AGGRESSIVE:
-                appendDialogueLine("Tu: Come da mia precedente mail...");
-                appendDialogueLine("Collega: Sì, ma la situazione è urgente.");
-                appendDialogueLine("Tu: Infatti sto già valutando la priorità.");
-                appendDialogueLine("Collega: Va bene, aspetto un riscontro.");
+
+            case 2:
+                appendDialogueLine("Project manager: Mi serve un aggiornamento immediato sul report. La riunione è tra poco.");
+                switch (action) {
+                    case BE_KIND:
+                        appendDialogueLine("Tu: Ti passo un riepilogo subito, così sei allineato.");
+                        appendDialogueLine("Project manager: Perfetto, questo mi aiuta molto.");
+                        appendDialogueLine("Tu: Se serve, ti evidenzio anche i punti critici.");
+                        appendDialogueLine("Project manager: Ottimo, grazie per la collaborazione.");
+                        break;
+                    case PASSIVE_AGGRESSIVE:
+                        appendDialogueLine("Tu: Curioso che serva tutto all'ultimo minuto, come sempre.");
+                        appendDialogueLine("Project manager: Non abbiamo tempo per le polemiche.");
+                        appendDialogueLine("Tu: Allora dimmi esattamente cosa manca, così chiudiamo la questione.");
+                        appendDialogueLine("Project manager: Te lo scrivo subito.");
+                        break;
+                    case RUDE:
+                        appendDialogueLine("Tu: Non posso rifare tutto all'ultimo minuto.");
+                        appendDialogueLine("Project manager: Mi servono risultati, non scuse.");
+                        appendDialogueLine("Tu: Allora gestisci meglio le priorità la prossima volta.");
+                        appendDialogueLine("Project manager: Questo tono non aiuta.");
+                        break;
+                }
                 break;
-            case RUDE:
-                appendDialogueLine("Tu: No, non lo faccio. Arrangiati.");
-                appendDialogueLine("Collega: Come ti permetti?");
-                appendDialogueLine("Tu: Ho altre priorità oggi.");
-                appendDialogueLine("Collega: Questo comportamento avrà conseguenze.");
+
+            case 3:
+                appendDialogueLine("Grande capo: Voglio una soluzione adesso. Niente scuse.");
+                switch (action) {
+                    case BE_KIND:
+                        appendDialogueLine("Tu: Va bene, ti do subito un piano concreto.");
+                        appendDialogueLine("Grande capo: Parla, ti ascolto.");
+                        appendDialogueLine("Tu: Divido il problema in due fasi e ti aggiorno appena ho un risultato.");
+                        appendDialogueLine("Grande capo: Bene, voglio vedere se reggi la pressione.");
+                        break;
+                    case PASSIVE_AGGRESSIVE:
+                        appendDialogueLine("Tu: Certo, dopo tutto il tempo che avevo chiesto.");
+                        appendDialogueLine("Grande capo: Non è il momento per queste osservazioni.");
+                        appendDialogueLine("Tu: Perfetto, allora concentriamoci sulla soluzione e non sul ritardo.");
+                        appendDialogueLine("Grande capo: Fai in fretta.");
+                        break;
+                    case RUDE:
+                        appendDialogueLine("Tu: Se vuoi risultati, smetti di ordinare e inizia a spiegare.");
+                        appendDialogueLine("Grande capo: Stai superando il limite.");
+                        appendDialogueLine("Tu: Il limite lo supera chi pretende tutto senza spiegare nulla.");
+                        appendDialogueLine("Grande capo: Vedremo quanto ti conviene.");
+                        break;
+                }
+                break;
+
+            default:
+                appendDialogueLine("Collega: Serve una mano, come al solito.");
+                appendDialogueLine("Tu: Dimmi cosa ti serve e vediamo.");
                 break;
         }
     }
@@ -316,7 +421,8 @@ public class MainWindowController {
         } else if (state.getOutcome() == GameState.Outcome.VICTORY) {
             appendLog("Hai superato l'ultimo incontro.");
         } else if (state.getLevel() > previousLevel) {
-            appendLog("Hai sconfitto " + previousEnemyName + " e sei passato al livello " + state.getLevel() + ".");
+            appendLog("Complimenti, hai sconfitto " + previousEnemyName + " e sei passato al livello " + state.getLevel() + ".");
+            appendLog("Attenzione: arriva un nuovo nemico.");
         } else {
             appendLog("Turno completato.");
         }
@@ -326,10 +432,19 @@ public class MainWindowController {
         logArea.appendText(text + "\n");
     }
 
-    private void disableButtons() {
+    private void updateActionButtonsState(GameState state) {
+        boolean passiveAllowed = state.getPlayer().getStats().getPatience() > 0;
+        passiveButton.setDisable(!passiveAllowed);
+    }
+
+    private void disableActionButtons() {
         kindButton.setDisable(true);
         passiveButton.setDisable(true);
         rudeButton.setDisable(true);
+    }
+
+    private void disableButtons() {
+        disableActionButtons();
         resumeButton.setDisable(true);
         restartButton.setDisable(true);
     }
