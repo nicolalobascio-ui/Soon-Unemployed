@@ -21,6 +21,7 @@ public class Player {
         return stats;
     }
 
+    // Deltas can be positive or negative, so we apply them differently for patience and HP.
     public void applyAction(BattleAction action) {
         int patienceDelta = action.getPatienceDelta();
         int healthDelta = action.getPlayerMentalHealthDelta();

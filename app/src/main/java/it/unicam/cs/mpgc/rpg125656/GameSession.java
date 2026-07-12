@@ -30,13 +30,32 @@ public class GameSession {
     }
 
     public void loadOrStartNew(String playerName) {
+        if (!loadGame()) {
+            startNewGame(playerName);
+        }
+    }
+
+    public boolean loadGame() {
         GameState loaded = persistenceService.load();
-        if (loaded != null) {
-            state = loaded;
-            return;
+        if (loaded == null) {
+            return false;
         }
 
-        startNewGame(playerName);
+        state = loaded;
+        return true;
+    }
+
+    public boolean saveGame() {
+        if (state == null) {
+            return false;
+        }
+
+        persistenceService.save(state);
+        return true;
+    }
+
+    public boolean hasSave() {
+        return persistenceService.hasSave();
     }
 
     public void restartGame(String playerName) {
@@ -44,6 +63,10 @@ public class GameSession {
         startNewGame(playerName);
     }
 
+    /**
+     * Applies a battle action, resolves the turn, and auto-saves.
+     * Does nothing if there is no active game or the match is already over.
+     */
     public void applyAction(BattleAction action) {
         if (state == null || gameService.isGameOver(state)) {
             return;

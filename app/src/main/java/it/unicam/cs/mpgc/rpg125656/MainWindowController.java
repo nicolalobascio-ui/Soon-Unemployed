@@ -20,22 +20,19 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 public class MainWindowController {
 
-    private static final String ROOT_STYLE = "-fx-background-color: #F7F8FA;";
-    private static final String TITLE_STYLE = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #263238;";
-    private static final String TEXT_STYLE = "-fx-text-fill: #263238;";
-    private static final String PANEL_STYLE = "-fx-border-color: #D7CEC3; -fx-border-width: 1; -fx-padding: 12;";
-    private static final String MENU_TEXT_STYLE = "-fx-text-fill: #263238; -fx-font-size: 14px;";
-    private static final String TEXT_AREA_STYLE = "-fx-control-inner-background: #FFFFFF; -fx-background-color: #FFFFFF; -fx-text-fill: #263238;";
-    private static final String PRIMARY_BUTTON_STYLE = "-fx-background-color: #B5524B; -fx-text-fill: white;";
-    private static final String SECONDARY_BUTTON_STYLE = "-fx-background-color: #5F7A8A; -fx-text-fill: white;";
-    private static final String NEUTRAL_BUTTON_STYLE = "-fx-background-color: #D7CEC3; -fx-text-fill: #263238;";
-    private static final Path SAVE_FILE = Path.of("savegame.txt");
+    private static final String ROOT_STYLE = "-fx-background-color: #1A1F26;";
+    private static final String TITLE_STYLE = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #E8EDF2;";
+    private static final String TEXT_STYLE = "-fx-text-fill: #C5CED8;";
+    private static final String PANEL_STYLE = "-fx-border-color: #3D4A57; -fx-border-width: 1; -fx-padding: 12; -fx-background-color: #242B34;";
+    private static final String MENU_TEXT_STYLE = "-fx-text-fill: #B8C4D0; -fx-font-size: 14px;";
+    private static final String TEXT_AREA_STYLE = "-fx-control-inner-background: #2A323C; -fx-background-color: #2A323C; -fx-text-fill: #E8EDF2;";
+    private static final String PRIMARY_BUTTON_STYLE = "-fx-background-color: #8B3A3A; -fx-text-fill: #F5F5F5;";
+    private static final String SECONDARY_BUTTON_STYLE = "-fx-background-color: #3E5C76; -fx-text-fill: #F5F5F5;";
+    private static final String NEUTRAL_BUTTON_STYLE = "-fx-background-color: #4A5568; -fx-text-fill: #E8EDF2;";
 
     private final GameSession session;
 
@@ -68,6 +65,7 @@ public class MainWindowController {
     private final Button passiveButton = new Button("Passivo-aggressiva");
     private final Button rudeButton = new Button("Maleducata");
     private final Button newGameButton = new Button("Nuova partita");
+    private final Button saveButton = new Button("Salva partita");
     private final Button resumeButton = new Button("Torna al menù");
     private final Button restartButton = new Button("Riavvia partita");
     private final Button nextLevelButton = new Button("Prossimo livello");
@@ -108,7 +106,7 @@ public class MainWindowController {
         statsGrid.setHgap(12);
         statsGrid.setVgap(8);
         statsGrid.setPadding(new Insets(12));
-        statsGrid.setStyle(PANEL_STYLE + " -fx-background-color: #F0FFF4;");
+        statsGrid.setStyle(PANEL_STYLE);
 
         ColumnConstraints labelCol = new ColumnConstraints();
         labelCol.setMinWidth(100);
@@ -132,17 +130,17 @@ public class MainWindowController {
         statsGrid.getColumnConstraints().addAll(labelCol, barCol, valueCol, spacerCol, labelCol, barCol, valueCol);
 
         Label playerTitle = new Label("Statistiche giocatore");
-        playerTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
+        playerTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #E8EDF2;");
         statsGrid.add(playerTitle, 0, 0, 3, 1);
 
         Label enemyTitle = new Label("Statistiche nemico");
-        enemyTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
+        enemyTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #E8EDF2;");
         statsGrid.add(enemyTitle, 4, 0, 3, 1);
 
         Label hpText = new Label("Salute mentale:");
         hpText.setStyle(TEXT_STYLE);
         hpBar.setProgress(0);
-        hpBar.setStyle("-fx-accent: #4CAF50;");
+        hpBar.setStyle("-fx-accent: #2E7D4F;");
         hpBarLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         hpStack.getChildren().addAll(hpBar, hpBarLabel);
         StackPane.setAlignment(hpBarLabel, Pos.CENTER);
@@ -153,7 +151,7 @@ public class MainWindowController {
         Label authorityText = new Label("Autorità:");
         authorityText.setStyle(TEXT_STYLE);
         enemyAuthorityBar.setProgress(0);
-        enemyAuthorityBar.setStyle("-fx-accent: #FF9800;");
+        enemyAuthorityBar.setStyle("-fx-accent: #C67C1E;");
         enemyAuthorityLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         enemyAuthorityStack.getChildren().addAll(enemyAuthorityBar, enemyAuthorityLabel);
         StackPane.setAlignment(enemyAuthorityLabel, Pos.CENTER);
@@ -164,7 +162,7 @@ public class MainWindowController {
         Label patienceText = new Label("Pazienza:");
         patienceText.setStyle(TEXT_STYLE);
         patienceBar.setProgress(0);
-        patienceBar.setStyle("-fx-accent: #2196F3;");
+        patienceBar.setStyle("-fx-accent: #2B6CB0;");
         patienceBarLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         patienceStack.getChildren().addAll(patienceBar, patienceBarLabel);
         StackPane.setAlignment(patienceBarLabel, Pos.CENTER);
@@ -175,7 +173,7 @@ public class MainWindowController {
         Label irritationText = new Label("Irritazione:");
         irritationText.setStyle(TEXT_STYLE);
         enemyIrritationBar.setProgress(0);
-        enemyIrritationBar.setStyle("-fx-accent: #9C27B0;");
+        enemyIrritationBar.setStyle("-fx-accent: #7B3F8F;");
         enemyIrritationLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         enemyIrritationStack.getChildren().addAll(enemyIrritationBar, enemyIrritationLabel);
         StackPane.setAlignment(enemyIrritationLabel, Pos.CENTER);
@@ -189,10 +187,15 @@ public class MainWindowController {
         VBox topBox = new VBox(8, titleLabel, levelLabel, timeLabel);
         topBox.setPadding(new Insets(16));
 
+        Label dialogueTitle = new Label("Dialogo");
+        dialogueTitle.setStyle(TEXT_STYLE);
+        Label logTitle = new Label("Log");
+        logTitle.setStyle(TEXT_STYLE);
+
         VBox centerBox = new VBox(12,
-                new Label("Dialogo"),
+                dialogueTitle,
                 dialogueArea,
-                new Label("Log"),
+                logTitle,
                 logArea
         );
         centerBox.setPadding(new Insets(16));
@@ -205,7 +208,7 @@ public class MainWindowController {
         nextLevelButton.setVisible(false);
         nextLevelButton.setManaged(false);
 
-        HBox controlButtons = new HBox(10, newGameButton, resumeButton, restartButton, nextLevelButton);
+        HBox controlButtons = new HBox(10, newGameButton, saveButton, resumeButton, restartButton, nextLevelButton);
         controlButtons.setAlignment(Pos.CENTER_LEFT);
         controlButtons.setPadding(new Insets(16, 16, 0, 16));
 
@@ -232,6 +235,7 @@ public class MainWindowController {
         Button loadButton = new Button("Carica partita");
         loadButton.setStyle(SECONDARY_BUTTON_STYLE);
         newGameButton.setStyle(PRIMARY_BUTTON_STYLE);
+        saveButton.setStyle(SECONDARY_BUTTON_STYLE);
         resumeButton.setStyle(NEUTRAL_BUTTON_STYLE);
         restartButton.setStyle(NEUTRAL_BUTTON_STYLE);
         kindButton.setStyle(SECONDARY_BUTTON_STYLE);
@@ -239,16 +243,25 @@ public class MainWindowController {
         rudeButton.setStyle(PRIMARY_BUTTON_STYLE);
 
         loadButton.setOnAction(event -> {
-            if (!Files.exists(SAVE_FILE)) {
+            if (!session.hasSave()) {
                 showNoSaveDialog();
                 return;
             }
 
-            session.loadOrStartNew("John");
+            if (!session.loadGame()) {
+                showCorruptSaveDialog();
+                return;
+            }
+
             showGame();
             refresh();
-            showLevelIntro();
-            appendLog("Partita caricata.");
+            if (session.isGameOver()) {
+                appendLog("Partita caricata: la sessione era già terminata.");
+                disableActionButtons();
+            } else {
+                showLevelIntro();
+                appendLog("Partita caricata.");
+            }
         });
 
         nextLevelButton.setOnAction(event -> {
@@ -286,8 +299,20 @@ public class MainWindowController {
             appendLog("Nuova partita avviata.");
         });
 
+        saveButton.setOnAction(event -> {
+            if (session.getState() == null) {
+                showSaveErrorDialog("Nessuna partita attiva da salvare.");
+                return;
+            }
+
+            if (session.saveGame()) {
+                appendLog("Partita salvata.");
+            } else {
+                showSaveErrorDialog("Impossibile salvare la partita.");
+            }
+        });
+
         resumeButton.setOnAction(event -> {
-            session.deleteSave();
             session.clearSession();
             showMenu();
         });
@@ -305,6 +330,10 @@ public class MainWindowController {
         });
     }
 
+    /**
+     * Handles one player turn in the UI: shows dialogue, runs the action in the session,
+     * refreshes bars, and enables "next level" when the enemy is defeated but the game continues.
+     */
     private void handleAction(BattleAction action) {
         GameState state = session.getState();
         if (state == null || session.isGameOver()) {
@@ -340,7 +369,6 @@ public class MainWindowController {
             nextLevelButton.setManaged(false);
             resumeButton.setDisable(false);
             restartButton.setDisable(false);
-            session.deleteSave();
         }
     }
 
@@ -373,8 +401,8 @@ public class MainWindowController {
         enemyAuthorityLabel.setText(authority + "/" + maxAuthority);
 
         int irritation = enemy.getIrritation();
-        enemyIrritationBar.setProgress(Math.max(0.0, Math.min(1.0, ((double) irritation) / maxAuthority)));
-        enemyIrritationLabel.setText(irritation + "/" + maxAuthority);
+        enemyIrritationBar.setProgress(Math.max(0.0, Math.min(1.0, irritation / 100.0)));
+        enemyIrritationLabel.setText(irritation + "/100");
 
         updateActionButtonsState(state);
     }
@@ -390,6 +418,7 @@ public class MainWindowController {
         kindButton.setDisable(false);
         passiveButton.setDisable(false);
         rudeButton.setDisable(false);
+        saveButton.setDisable(false);
         resumeButton.setDisable(false);
         restartButton.setDisable(false);
         nextLevelButton.setVisible(false);
@@ -556,6 +585,7 @@ public class MainWindowController {
 
     private void disableButtons() {
         disableActionButtons();
+        saveButton.setDisable(true);
         resumeButton.setDisable(true);
         restartButton.setDisable(true);
         nextLevelButton.setVisible(false);
@@ -567,6 +597,22 @@ public class MainWindowController {
         alert.setTitle("Carica partita");
         alert.setHeaderText("Nessun salvataggio disponibile");
         alert.setContentText("Non è stato trovato alcun file di salvataggio. Avvia una nuova partita per iniziare.");
+        alert.showAndWait();
+    }
+
+    private void showCorruptSaveDialog() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Carica partita");
+        alert.setHeaderText("Salvataggio non valido");
+        alert.setContentText("Il file di salvataggio è danneggiato o illeggibile. Avvia una nuova partita.");
+        alert.showAndWait();
+    }
+
+    private void showSaveErrorDialog(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Salva partita");
+        alert.setHeaderText("Salvataggio non riuscito");
+        alert.setContentText(message);
         alert.showAndWait();
     }
 }

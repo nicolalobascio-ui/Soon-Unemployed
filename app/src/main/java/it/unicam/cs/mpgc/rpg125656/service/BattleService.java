@@ -22,6 +22,10 @@ public class BattleService implements BattleServicePort {
         updateOutcome(state);
     }
 
+    /**
+     * Updates the game outcome after stats change. Burnout is checked first
+     * because it ends the game even if the boss could still fire the player.
+     */
     @Override
     public void updateOutcome(GameState state) {
         if (state == null || state.getCurrentEnemy() == null || state.isFinished()) {

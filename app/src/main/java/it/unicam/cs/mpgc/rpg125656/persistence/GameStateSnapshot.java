@@ -67,6 +67,10 @@ public class GameStateSnapshot {
         );
     }
 
+    /**
+     * Rebuilds the full GameState from saved values. We create the enemy separately
+     * because Boss and Enemy are different classes and that info is not stored directly.
+     */
     public GameState toGameState() {
         Player player = new Player(playerName, new Stats(mentalHealth, patience));
         GameState state = new GameState(player);
@@ -78,6 +82,7 @@ public class GameStateSnapshot {
         return state;
     }
 
+    // Uses the saved flag to decide whether we need a Boss (can fire) or a normal Enemy.
     private Enemy createEnemy() {
         if (enemyCanFire) {
             return new Boss(enemyName, enemyMaxAuthority, enemyAuthority, enemyIrritation);
@@ -86,6 +91,10 @@ public class GameStateSnapshot {
         return new Enemy(enemyName, enemyMaxAuthority, enemyAuthority, enemyIrritation, false);
     }
 
+    /**
+     * Converts the snapshot to a single line for the save file.
+     * Text fields are Base64-encoded so a '|' inside a name does not break parsing.
+     */
     public String toFileFormat() {
         return String.join("|",
                 encode(playerName),
@@ -102,6 +111,10 @@ public class GameStateSnapshot {
         );
     }
 
+    /**
+     * Reads one line from the save file and splits it into the 11 expected fields.
+     * Throws if the format does not match (wrong number of parts or invalid values).
+     */
     public static GameStateSnapshot fromFileFormat(String line) {
         String[] parts = line.split("\\|", -1);
         if (parts.length != 11) {

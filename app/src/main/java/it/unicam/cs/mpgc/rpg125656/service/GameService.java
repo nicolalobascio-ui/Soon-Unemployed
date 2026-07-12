@@ -37,6 +37,10 @@ public class GameService implements GameServicePort {
         };
     }
 
+    /**
+     * Called after each player action. First checks if the game already ended,
+     * then advances to the next level if the current enemy was defeated.
+     */
     @Override
     public void resolveCurrentBattle(GameState state) {
         if (state == null || state.isFinished()) {
@@ -54,6 +58,10 @@ public class GameService implements GameServicePort {
         }
     }
 
+    /**
+     * Moves the game to the next level when the enemy authority reaches zero.
+     * If level 3 is already beaten, the outcome is set to VICTORY.
+     */
     @Override
     public void advanceLevel(GameState state) {
         if (state == null || state.isFinished()) {

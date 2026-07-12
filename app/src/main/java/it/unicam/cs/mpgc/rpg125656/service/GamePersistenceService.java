@@ -13,23 +13,32 @@ public class GamePersistenceService implements GamePersistencePort {
     private final Path saveFile;
 
     public GamePersistenceService() {
-        this(Path.of("savegame.txt"));
+        this(defaultSaveFile());
     }
 
     public GamePersistenceService(Path saveFile) {
         this.saveFile = saveFile;
     }
 
+    private static Path defaultSaveFile() {
+        return Path.of(System.getProperty("user.home"), ".soon-unemployed", "savegame.txt");
+    }
+
     @Override
     public void save(GameState state) {
         GameStateSnapshot snapshot = GameStateSnapshot.from(state);
         try {
+            Files.createDirectories(saveFile.getParent());
             Files.writeString(saveFile, snapshot.toFileFormat(), StandardCharsets.UTF_8);
         } catch (IOException exception) {
             throw new RuntimeException("Unable to save game", exception);
         }
     }
 
+    /**
+     * Reads the save file and rebuilds the game state.
+     * Returns null if the file is missing or empty, not if it is corrupted.
+     */
     @Override
     public GameState load() {
         if (!Files.exists(saveFile)) {
