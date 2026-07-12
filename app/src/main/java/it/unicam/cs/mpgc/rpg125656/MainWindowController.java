@@ -44,7 +44,6 @@ public class MainWindowController {
     private final Label levelLabel = new Label();
     private final Label timeLabel = new Label();
 
-    // Player stat bars + labels inside stacks
     private final ProgressBar hpBar = new ProgressBar(0);
     private final Label hpBarLabel = new Label();
     private final StackPane hpStack = new StackPane();
@@ -53,7 +52,6 @@ public class MainWindowController {
     private final Label patienceBarLabel = new Label();
     private final StackPane patienceStack = new StackPane();
 
-    // Enemy stat bars + labels inside stacks
     private final Label enemyNameLabel = new Label();
     private final ProgressBar enemyAuthorityBar = new ProgressBar(0);
     private final Label enemyAuthorityLabel = new Label();
@@ -106,7 +104,6 @@ public class MainWindowController {
         logArea.setWrapText(true);
         logArea.setStyle(TEXT_AREA_STYLE);
 
-        // --- Stats grid: aligned columns (player left, enemy right, small spacer) ---
         GridPane statsGrid = new GridPane();
         statsGrid.setHgap(12);
         statsGrid.setVgap(8);
@@ -129,13 +126,11 @@ public class MainWindowController {
         valueCol.setHgrow(Priority.NEVER);
 
         ColumnConstraints spacerCol = new ColumnConstraints();
-        spacerCol.setMinWidth(20); // piccolo spacer per avvicinare il nemico
+        spacerCol.setMinWidth(20);
         spacerCol.setHgrow(Priority.NEVER);
 
-        // Columns: 0-label,1-bar,2-value,3-spacer,4-label,5-bar,6-value
         statsGrid.getColumnConstraints().addAll(labelCol, barCol, valueCol, spacerCol, labelCol, barCol, valueCol);
 
-        // Titles
         Label playerTitle = new Label("Statistiche giocatore");
         playerTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
         statsGrid.add(playerTitle, 0, 0, 3, 1);
@@ -144,7 +139,6 @@ public class MainWindowController {
         enemyTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #263238;");
         statsGrid.add(enemyTitle, 4, 0, 3, 1);
 
-        // Player HP row
         Label hpText = new Label("Salute mentale:");
         hpText.setStyle(TEXT_STYLE);
         hpBar.setProgress(0);
@@ -154,9 +148,8 @@ public class MainWindowController {
         StackPane.setAlignment(hpBarLabel, Pos.CENTER);
         statsGrid.add(hpText, 0, 1);
         statsGrid.add(hpStack, 1, 1);
-        statsGrid.add(new Label(""), 2, 1); // placeholder value column (we use label inside bar)
+        statsGrid.add(new Label(""), 2, 1);
 
-        // Enemy Authority row (right)
         Label authorityText = new Label("Autorità:");
         authorityText.setStyle(TEXT_STYLE);
         enemyAuthorityBar.setProgress(0);
@@ -168,7 +161,6 @@ public class MainWindowController {
         statsGrid.add(enemyAuthorityStack, 5, 1);
         statsGrid.add(new Label(""), 6, 1);
 
-        // Player Patience row
         Label patienceText = new Label("Pazienza:");
         patienceText.setStyle(TEXT_STYLE);
         patienceBar.setProgress(0);
@@ -180,7 +172,6 @@ public class MainWindowController {
         statsGrid.add(patienceStack, 1, 2);
         statsGrid.add(new Label(""), 2, 2);
 
-        // Enemy Irritation row (right)
         Label irritationText = new Label("Irritazione:");
         irritationText.setStyle(TEXT_STYLE);
         enemyIrritationBar.setProgress(0);
@@ -192,11 +183,9 @@ public class MainWindowController {
         statsGrid.add(enemyIrritationStack, 5, 2);
         statsGrid.add(new Label(""), 6, 2);
 
-        // Enemy name under right column
         enemyNameLabel.setStyle(TEXT_STYLE);
         statsGrid.add(enemyNameLabel, 4, 3, 3, 1);
 
-        // --- Top / center layout ---
         VBox topBox = new VBox(8, titleLabel, levelLabel, timeLabel);
         topBox.setPadding(new Insets(16));
 
@@ -231,6 +220,9 @@ public class MainWindowController {
         Label menuText = new Label(
                 "Soon Unemployed è un gioco di ruolo a turni ambientato nel contesto lavorativo contemporaneo.\n\n" +
                         "Devi superare tre incontri consecutivi nell'arco della giornata di venerdì, gestendo salute mentale, pazienza e rischio di licenziamento.\n\n" +
+                        "Le risposte disponibili sono tre: Gentile, Passivo-aggressiva e Maleducata. " +
+                        "Ogni scelta cambia in modo diverso la pazienza del giocatore, la salute mentale e l'irritazione del nemico.\n\n" +
+                        "La risposta gentile è più sicura, la passivo-aggressiva costa di più ma irrita il nemico, la maleducata è la più rischiosa ma può essere utile in certe situazioni.\n\n" +
                         "Scegli Nuova partita per iniziare oppure Carica partita se hai già un salvataggio."
         );
         menuText.setStyle(MENU_TEXT_STYLE);
