@@ -8,15 +8,23 @@ public class Enemy {
     private final boolean irritationCanFire;
 
     public Enemy(String name, int maxAuthority, boolean irritationCanFire) {
+        this(name, maxAuthority, maxAuthority, 0, irritationCanFire);
+    }
+
+    public Enemy(String name, int maxAuthority, int authority, int irritation, boolean irritationCanFire) {
         this.name = name;
         this.maxAuthority = Math.max(1, maxAuthority);
-        this.authority = this.maxAuthority;
+        this.authority = clamp(authority, 0, this.maxAuthority);
+        this.irritation = clamp(irritation, 0, 100);
         this.irritationCanFire = irritationCanFire;
-        this.irritation = 0;
     }
 
     public String getName() {
         return name;
+    }
+
+    public int getMaxAuthority() {
+        return maxAuthority;
     }
 
     public int getAuthority() {
