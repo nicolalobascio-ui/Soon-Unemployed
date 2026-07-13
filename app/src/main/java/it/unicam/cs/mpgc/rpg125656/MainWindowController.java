@@ -318,7 +318,8 @@ public class MainWindowController {
         });
 
         restartButton.setOnAction(event -> {
-            String playerName = askPlayerName();
+            GameState currentState = session.getState();
+            String playerName = currentState != null ? currentState.getPlayer().getName() : askPlayerName();
             if (playerName == null) {
                 return;
             }
@@ -345,13 +346,22 @@ public class MainWindowController {
             return;
         }
 
-        appendDialogue(action);
-
         int previousLevel = state.getLevel();
         String previousEnemyName = state.getCurrentEnemy().getName();
 
+        appendDialogueLine(getPlayerResponse(previousLevel, action));
+
         session.applyAction(action);
         refresh();
+
+        boolean enemyDefeated = state.getLevel() > previousLevel || state.getOutcome() == GameState.Outcome.VICTORY;
+        if (enemyDefeated) {
+            appendDialogueLine(previousEnemyName + ": Va bene, ci vediamo.");
+        } else {
+            appendDialogueLine(getEnemyReaction(previousLevel, action));
+            appendDialogueLine(getEnemyFollowUp(previousLevel, action));
+        }
+
         appendTurnResult(state, previousLevel, previousEnemyName);
 
         if (!session.isGameOver() && state.getLevel() > previousLevel) {
@@ -480,27 +490,33 @@ public class MainWindowController {
         }
     }
 
-    private void appendDialogue(BattleAction action) {
-        GameState state = session.getState();
-        if (state == null) {
-            return;
-        }
-
-        appendDialogueLine(getPlayerResponse(action));
-        appendDialogueLine(getEnemyReaction(state, action));
-        appendDialogueLine(getEnemyFollowUp(state, action));
-    }
-
-    private String getPlayerResponse(BattleAction action) {
-        return switch (action) {
-            case BE_KIND -> "Tu: Va bene, mandami tutto e mi occupo io della parte urgente.";
-            case PASSIVE_AGGRESSIVE -> "Tu: Strano che l'urgenza arrivi sempre quando serve a me.";
-            case RUDE -> "Tu: No, occupatene da solo.";
+    private String getPlayerResponse(int level, BattleAction action) {
+        return switch (level) {
+            case 1 -> switch (action) {
+                case BE_KIND -> "Tu: Va bene, mandami tutto: me ne occupo io.";
+                case PASSIVE_AGGRESSIVE -> "Tu: Certo, come sempre tocca a me quando c'è fretta.";
+                case RUDE -> "Tu: No, arrangiati da solo.";
+            };
+            case 2 -> switch (action) {
+                case BE_KIND -> "Tu: Va bene, preparo subito il report.";
+                case PASSIVE_AGGRESSIVE -> "Tu: Certo, come se non l'avessi già rimandato abbastanza io.";
+                case RUDE -> "Tu: No, non ho tempo per il tuo report.";
+            };
+            case 3 -> switch (action) {
+                case BE_KIND -> "Tu: Sì, ci penso io e ti porto una soluzione.";
+                case PASSIVE_AGGRESSIVE -> "Tu: Certo, come se non avessi già abbastanza cose da gestire.";
+                case RUDE -> "Tu: No, trovala da solo la soluzione.";
+            };
+            default -> switch (action) {
+                case BE_KIND -> "Tu: Va bene, me ne occupo anche stavolta.";
+                case PASSIVE_AGGRESSIVE -> "Tu: Ancora io? Va bene, dimmi cosa serve.";
+                case RUDE -> "Tu: No, questa volta arrangiati.";
+            };
         };
     }
 
-    private String getEnemyReaction(GameState state, BattleAction action) {
-        return switch (state.getLevel()) {
+    private String getEnemyReaction(int level, BattleAction action) {
+        return switch (level) {
             case 1 -> switch (action) {
                 case BE_KIND -> "Collega: Grazie, sapevo che potevo contare su di te.";
                 case PASSIVE_AGGRESSIVE -> "Collega: Capisco il punto, ma adesso ho davvero bisogno di una mano.";
@@ -524,8 +540,8 @@ public class MainWindowController {
         };
     }
 
-    private String getEnemyFollowUp(GameState state, BattleAction action) {
-        return switch (state.getLevel()) {
+    private String getEnemyFollowUp(int level, BattleAction action) {
+        return switch (level) {
             case 1 -> switch (action) {
                 case BE_KIND -> "Collega: Puoi anche prendere in carico l'altra parte, così ci togliamo il pensiero?";
                 case PASSIVE_AGGRESSIVE -> "Collega: Quindi, me la sistemi o devo chiedere a qualcun altro?";
